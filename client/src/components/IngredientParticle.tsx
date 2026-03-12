@@ -4,64 +4,74 @@ import { Ingredient } from "@/lib/ingredients";
 interface IngredientParticleProps {
   ingredient: Ingredient;
   index: number;
-  total: number;
   progress: MotionValue<number>;
-  startPos: { x: number; y: number; delay: number };
+  xFrac: number;
+  yFrac: number;
+  targetDx: number;
+  targetDy: number;
+  delay: number;
+  flyStart: number;
+  flyEnd: number;
 }
 
 export function IngredientParticle({
   ingredient,
-  index,
-  total,
   progress,
-  startPos,
+  xFrac,
+  yFrac,
+  targetDx,
+  targetDy,
+  delay,
+  flyStart,
+  flyEnd,
 }: IngredientParticleProps) {
-  const startTrigger = index / total;
-  const endTrigger = (index + 1) / total;
+  const journey = useTransform(progress, [flyStart, flyEnd], [0, 1], { clamp: true });
 
-  const journey = useTransform(progress, [startTrigger, endTrigger], [0, 1]);
-
-  const x = useTransform(journey, [0, 1], [startPos.x, 0]);
-  const y = useTransform(journey, [0, 1], [startPos.y, -100]);
-  const scale = useTransform(journey, [0, 0.75, 1], [1, 0.9, 0.15]);
-  const opacity = useTransform(progress, [0, endTrigger - 0.015, endTrigger], [1, 1, 0]);
+  const x       = useTransform(journey, [0, 1], [0, targetDx]);
+  const y       = useTransform(journey, [0, 1], [0, targetDy]);
+  const scale   = useTransform(journey, [0, 0.72, 1], [1, 0.85, 0.1]);
+  const opacity = useTransform(journey, [0, 0.80, 1], [1, 1, 0]);
 
   return (
-    <motion.div
-      style={{ x, y, scale, opacity }}
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
+    /* Outer div: absolute positioned to xFrac/yFrac, centered on that point */
+    <div
+      className="absolute pointer-events-none z-20"
+      style={{
+        left: `${xFrac * 100}%`,
+        top:  `${yFrac * 100}%`,
+        transform: "translate(-50%, -50%)",
+      }}
     >
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{
-          duration: 2.8,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: startPos.delay,
-        }}
-        className="flex flex-col items-center gap-1.5"
-      >
-        <div
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl border shadow-md"
-          style={{
-            backgroundColor: `${ingredient.color}16`,
-            borderColor: `${ingredient.color}40`,
-            boxShadow: `0 4px 16px ${ingredient.color}20`,
-          }}
+      {/* Inner motion div: handles all animation transforms */}
+      <motion.div style={{ x, y, scale, opacity }}>
+        {/* Float animation while waiting to fly */}
+        <motion.div
+          animate={{ y: [0, -7, 0] }}
+          transition={{ duration: 2.6 + delay * 0.4, repeat: Infinity, ease: "easeInOut", delay }}
+          className="flex flex-col items-center gap-1.5"
         >
-          {ingredient.icon}
-        </div>
-        <div
-          className="px-2.5 py-0.5 rounded-full text-[9px] md:text-[10px] font-semibold tracking-wider border shadow-sm"
-          style={{
-            backgroundColor: "white",
-            borderColor: ingredient.color + "30",
-            color: ingredient.color,
-          }}
-        >
-          {ingredient.name}
-        </div>
+          <div
+            className="w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg md:text-xl border shadow-sm"
+            style={{
+              backgroundColor: ingredient.color + "14",
+              borderColor:     ingredient.color + "40",
+              boxShadow:       `0 3px 12px ${ingredient.color}20`,
+            }}
+          >
+            {ingredient.icon}
+          </div>
+          <div
+            className="px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-semibold tracking-wide border whitespace-nowrap shadow-sm"
+            style={{
+              backgroundColor: "white",
+              borderColor:     ingredient.color + "30",
+              color:           ingredient.color,
+            }}
+          >
+            {ingredient.name}
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

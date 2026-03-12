@@ -5,7 +5,8 @@ interface BottleProps {
 }
 
 export function Bottle({ progress }: BottleProps) {
-  const clipY = useTransform(progress, [0, 1], [195, 95]);
+  // Body ellipse: cx=100 cy=158 ry=80 → bottom=238, top=78
+  const clipY = useTransform(progress, [0, 1], [238, 78]);
   const oilOpacity = useTransform(progress, [0, 0.04], [0, 1]);
 
   return (
@@ -51,10 +52,10 @@ export function Bottle({ progress }: BottleProps) {
 
           <clipPath id="fillClip">
             <motion.rect
-              x="18"
+              x="0"
               y={clipY}
-              width="164"
-              height="140"
+              width="200"
+              height="180"
             />
           </clipPath>
         </defs>
