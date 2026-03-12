@@ -1,7 +1,7 @@
 import { motion, MotionValue, useTransform } from "framer-motion";
 import { Ingredient } from "@/lib/ingredients";
 
-interface IngredientParticleProps {
+interface Props {
   ingredient: Ingredient;
   index: number;
   progress: MotionValue<number>;
@@ -9,11 +9,9 @@ interface IngredientParticleProps {
   yFrac: number;
   targetDx: number;
   targetDy: number;
-  delay: number;
-  // When this ingredient fades IN at its random position
+  floatDelay: number;   // CSS animation-delay (s)
   appearStart: number;
   appearEnd: number;
-  // When this ingredient flies into the bottle
   flyStart: number;
   flyEnd: number;
 }
@@ -25,13 +23,14 @@ export function IngredientParticle({
   yFrac,
   targetDx,
   targetDy,
-  delay,
+  floatDelay,
   appearStart,
   appearEnd,
   flyStart,
   flyEnd,
-}: IngredientParticleProps) {
-  // Opacity: invisible → fade in → stay → fade out as it enters bottle
+}: Props) {
+
+  // ── Opacity: invisible → fade in → stay → fade out into bottle ──
   const opacity = useTransform(
     progress,
     [appearStart, appearEnd, flyStart, flyEnd],
@@ -39,56 +38,61 @@ export function IngredientParticle({
     { clamp: true }
   );
 
-  // Only move during fly phase (0 = resting at scatter position, 1 = bottle center)
-  const flyJourney = useTransform(progress, [flyStart, flyEnd], [0, 1], { clamp: true });
-  const x     = useTransform(flyJourney, [0, 1], [0, targetDx]);
-  const y     = useTransform(flyJourney, [0, 1], [0, targetDy]);
-  const scale = useTransform(flyJourney, [0, 0.65, 1], [1, 0.82, 0.08]);
+  // ── Position: starts at (0,0) relative to scatter pos, moves to bottle ──
+  const flyT  = useTransform(progress, [flyStart, flyEnd], [0, 1], { clamp: true });
+  const x     = useTransform(flyT, [0, 1], [0, targetDx]);
+  const y     = useTransform(flyT, [0, 1], [0, targetDy]);
+  const scale = useTransform(flyT, [0, 0.55, 1], [1, 0.85, 0.05]);
 
   return (
-    /* Outer div: pinned to its random scatter position */
+    /*
+     * Layer 1 – static anchor (CSS left/top = scatter position).
+     *   Nothing animates here; no reflows from JS.
+     */
     <div
-      className="absolute pointer-events-none z-20"
+      className="absolute pointer-events-none"
       style={{
-        left: `${xFrac * 100}%`,
-        top:  `${yFrac * 100}%`,
+        left:      `${xFrac * 100}%`,
+        top:       `${yFrac * 100}%`,
         transform: "translate(-50%, -50%)",
+        zIndex:    20,
       }}
     >
-      {/* Motion div: handles fly-toward-bottle + fade */}
+      {/*
+       * Layer 2 – scroll-driven motion (GPU: x, y, scale, opacity).
+       *   framer-motion composes these into a single CSS transform,
+       *   which runs entirely on the compositor thread.
+       */}
       <motion.div style={{ x, y, scale, opacity }}>
-        {/* Gentle idle float */}
-        <motion.div
-          animate={{ y: [0, -8, 0] }}
-          transition={{
-            duration: 2.4 + (delay % 1.2),
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay,
-          }}
-          className="flex flex-col items-center gap-1.5"
+        {/*
+         * Layer 3 – idle float (pure CSS keyframe).
+         *   Runs on compositor thread independently; no JS per frame.
+         *   Uses a separate element so it doesn't fight with Layer 2's transform.
+         */}
+        <div
+          className="particle-float flex flex-col items-center gap-1"
+          style={{ animationDelay: `${floatDelay}s` }}
         >
           <div
             className="w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg md:text-xl border shadow-sm"
             style={{
-              backgroundColor: ingredient.color + "13",
-              borderColor:     ingredient.color + "40",
-              boxShadow:       `0 3px 14px ${ingredient.color}20`,
+              backgroundColor: ingredient.color + "15",
+              borderColor:     ingredient.color + "38",
             }}
           >
             {ingredient.icon}
           </div>
-          <div
-            className="px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-semibold tracking-wide border whitespace-nowrap shadow-sm"
+          <span
+            className="px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-semibold tracking-wide border whitespace-nowrap"
             style={{
-              backgroundColor: "white",
-              borderColor:     ingredient.color + "30",
-              color:           ingredient.color,
+              background:  "white",
+              borderColor: ingredient.color + "30",
+              color:       ingredient.color,
             }}
           >
             {ingredient.name}
-          </div>
-        </motion.div>
+          </span>
+        </div>
       </motion.div>
     </div>
   );

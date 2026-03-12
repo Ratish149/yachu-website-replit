@@ -219,11 +219,29 @@
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+/* ── Ingredient idle float (CSS-only, runs on compositor thread) ── */
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-8px); }
 }
 
+/* Desktop: 8px float */
+.particle-float {
+  animation: particleFloat 3.4s ease-in-out infinite;
+}
+
+/* Mobile: 5px float (less GPU work, less visual noise while scrolling) */
+@media (max-width: 767px) {
+  @keyframes particleFloat {
+    0%, 100% { transform: translateY(0px);  }
+    50%       { transform: translateY(-5px); }
+  }
+  .particle-float {
+    animation-duration: 4s; /* slower on mobile = less repaints */
+  }
+}
+
+/* Legacy helper kept for any other usage */
 .animate-float {
-  animation: float 3.5s ease-in-out infinite;
+  animation: particleFloat 3.5s ease-in-out infinite;
 }
