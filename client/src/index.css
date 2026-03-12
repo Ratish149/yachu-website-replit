@@ -2,70 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE — using dark oil factory palette as default */
+/* WHITE / LIGHT THEME */
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
 
-  --background: 120 15% 5%;
-  --foreground: 45 30% 92%;
-  --border: 120 10% 16%;
-  --card: 120 12% 8%;
-  --card-foreground: 45 30% 92%;
-  --card-border: 120 10% 15%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
+  --border: 0 0% 88%;
+  --card: 0 0% 97%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 90%;
 
-  --sidebar: 120 12% 7%;
-  --sidebar-foreground: 45 25% 88%;
-  --sidebar-border: 120 10% 14%;
-  --sidebar-primary: 43 65% 52%;
-  --sidebar-primary-foreground: 120 15% 5%;
-  --sidebar-accent: 120 20% 12%;
-  --sidebar-accent-foreground: 45 30% 88%;
-  --sidebar-ring: 43 65% 52%;
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 0 0% 15%;
+  --sidebar-border: 0 0% 90%;
+  --sidebar-primary: 43 65% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 43 30% 95%;
+  --sidebar-accent-foreground: 0 0% 15%;
+  --sidebar-ring: 43 65% 47%;
 
-  --popover: 120 12% 8%;
-  --popover-foreground: 45 30% 92%;
-  --popover-border: 120 10% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 88%;
 
-  --primary: 43 65% 52%;
-  --primary-foreground: 120 15% 5%;
+  --primary: 43 65% 47%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 120 20% 12%;
-  --secondary-foreground: 45 25% 85%;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 15%;
 
-  --muted: 120 15% 10%;
-  --muted-foreground: 45 15% 55%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 48%;
 
-  --accent: 120 25% 15%;
-  --accent-foreground: 45 30% 90%;
+  --accent: 43 40% 95%;
+  --accent-foreground: 0 0% 10%;
 
-  --destructive: 0 65% 50%;
-  --destructive-foreground: 45 30% 92%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
 
-  --input: 120 10% 18%;
-  --ring: 43 65% 52%;
+  --input: 0 0% 88%;
+  --ring: 43 65% 47%;
 
-  --chart-1: 43 65% 52%;
-  --chart-2: 120 40% 35%;
+  --chart-1: 43 65% 47%;
+  --chart-2: 120 40% 40%;
   --chart-3: 30 70% 55%;
-  --chart-4: 160 40% 40%;
-  --chart-5: 200 50% 45%;
+  --chart-4: 200 50% 45%;
+  --chart-5: 270 40% 50%;
 
   --font-sans: 'Inter', sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 1px 2px -1px hsl(43 65% 52% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 1px 2px -1px hsl(43 65% 52% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 2px 4px -1px hsl(43 65% 52% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 4px 6px -1px hsl(43 65% 52% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 8px 10px -1px hsl(43 65% 52% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.04);
+  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.06);
+  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.06), 0px 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow: 0px 4px 8px 0px rgba(0,0,0,0.06), 0px 2px 4px -1px rgba(0,0,0,0.04);
+  --shadow-md: 0px 6px 12px 0px rgba(0,0,0,0.08), 0px 3px 6px -1px rgba(0,0,0,0.04);
+  --shadow-lg: 0px 12px 24px 0px rgba(0,0,0,0.08), 0px 6px 12px -2px rgba(0,0,0,0.05);
+  --shadow-xl: 0px 20px 40px 0px rgba(0,0,0,0.10), 0px 10px 20px -4px rgba(0,0,0,0.06);
+  --shadow-2xl: 0px 30px 60px 0px rgba(0,0,0,0.12);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -92,58 +92,48 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 120 15% 5%;
-  --foreground: 45 30% 92%;
-  --border: 120 10% 16%;
-  --card: 120 12% 8%;
-  --card-foreground: 45 30% 92%;
-  --card-border: 120 10% 15%;
-
-  --sidebar: 120 12% 7%;
-  --sidebar-foreground: 45 25% 88%;
-  --sidebar-border: 120 10% 14%;
-  --sidebar-primary: 43 65% 52%;
-  --sidebar-primary-foreground: 120 15% 5%;
-  --sidebar-accent: 120 20% 12%;
-  --sidebar-accent-foreground: 45 30% 88%;
-  --sidebar-ring: 43 65% 52%;
-
-  --popover: 120 12% 8%;
-  --popover-foreground: 45 30% 92%;
-  --popover-border: 120 10% 15%;
-
-  --primary: 43 65% 52%;
-  --primary-foreground: 120 15% 5%;
-
-  --secondary: 120 20% 12%;
-  --secondary-foreground: 45 25% 85%;
-
-  --muted: 120 15% 10%;
-  --muted-foreground: 45 15% 55%;
-
-  --accent: 120 25% 15%;
-  --accent-foreground: 45 30% 90%;
-
-  --destructive: 0 65% 50%;
-  --destructive-foreground: 45 30% 92%;
-
-  --input: 120 10% 18%;
-  --ring: 43 65% 52%;
-
-  --chart-1: 43 65% 52%;
-  --chart-2: 120 40% 35%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
+  --border: 0 0% 88%;
+  --card: 0 0% 97%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 90%;
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 0 0% 15%;
+  --sidebar-border: 0 0% 90%;
+  --sidebar-primary: 43 65% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 43 30% 95%;
+  --sidebar-accent-foreground: 0 0% 15%;
+  --sidebar-ring: 43 65% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 88%;
+  --primary: 43 65% 47%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 15%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 48%;
+  --accent: 43 40% 95%;
+  --accent-foreground: 0 0% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 0 0% 88%;
+  --ring: 43 65% 47%;
+  --chart-1: 43 65% 47%;
+  --chart-2: 120 40% 40%;
   --chart-3: 30 70% 55%;
-  --chart-4: 160 40% 40%;
-  --chart-5: 200 50% 45%;
-
-  --shadow-2xs: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 1px 2px -1px hsl(43 65% 52% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 1px 2px -1px hsl(43 65% 52% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 2px 4px -1px hsl(43 65% 52% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 4px 6px -1px hsl(43 65% 52% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(43 65% 52% / 0.00), 0px 8px 10px -1px hsl(43 65% 52% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(43 65% 52% / 0.00);
+  --chart-4: 200 50% 45%;
+  --chart-5: 270 40% 50%;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.04);
+  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.06);
+  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.06);
+  --shadow: 0px 4px 8px 0px rgba(0,0,0,0.06);
+  --shadow-md: 0px 6px 12px 0px rgba(0,0,0,0.08);
+  --shadow-lg: 0px 12px 24px 0px rgba(0,0,0,0.08);
+  --shadow-xl: 0px 20px 40px 0px rgba(0,0,0,0.10);
+  --shadow-2xl: 0px 30px 60px 0px rgba(0,0,0,0.12);
 }
 
 @layer base {
@@ -162,8 +152,8 @@
 }
 
 @layer utilities {
-  .text-glow {
-    text-shadow: 0 0 30px hsl(43 65% 52% / 0.5), 0 0 60px hsl(43 65% 52% / 0.2);
+  .text-glow-gold {
+    text-shadow: 0 0 20px rgba(201, 168, 76, 0.35);
   }
 
   input[type="search"]::-webkit-search-cancel-button {
@@ -231,14 +221,9 @@
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-float {
-  animation: float 4s ease-in-out infinite;
+  animation: float 3.5s ease-in-out infinite;
 }

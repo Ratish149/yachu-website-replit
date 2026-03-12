@@ -5,115 +5,154 @@ interface BottleProps {
 }
 
 export function Bottle({ progress }: BottleProps) {
-  // Map progress (0 to 1) to clipPath Y coordinate (370 empty down to 110 full)
-  // The rect starts at y=370 and moves UP to y=110 to reveal the fill
-  const clipY = useTransform(progress, [0, 1], [370, 110]);
+  const clipY = useTransform(progress, [0, 1], [195, 95]);
+  const oilOpacity = useTransform(progress, [0, 0.04], [0, 1]);
 
   return (
-    <div className="relative w-[200px] md:w-[300px] max-w-full drop-shadow-[0_0_40px_rgba(201,168,76,0.15)]">
-      <svg 
-        viewBox="0 0 200 400" 
+    <div className="relative w-[260px] md:w-[340px] max-w-full">
+      <svg
+        viewBox="0 0 200 260"
         className="w-full h-auto overflow-visible"
-        style={{ filter: "drop-shadow(0px 20px 30px rgba(0,0,0,0.5))" }}
+        style={{ filter: "drop-shadow(0px 20px 40px rgba(0,0,0,0.12))" }}
       >
         <defs>
-          <linearGradient id="oilGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#e8cf66" stopOpacity="0.95" />
-            <stop offset="40%" stopColor="#c9a84c" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#7a5c43" stopOpacity="1" />
-          </linearGradient>
-          
-          <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.05)" />
-            <stop offset="20%" stopColor="rgba(255,255,255,0.3)" />
-            <stop offset="40%" stopColor="rgba(255,255,255,0.0)" />
-            <stop offset="100%" stopColor="rgba(255,255,255,0.0)" />
+          <linearGradient id="oilFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#e8cf66" stopOpacity="0.82" />
+            <stop offset="50%" stopColor="#c9a84c" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#a07830" stopOpacity="0.9" />
           </linearGradient>
 
+          <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="60%" stopColor="#f5f5f5" />
+            <stop offset="100%" stopColor="#e8e8e8" />
+          </linearGradient>
+
+          <linearGradient id="capGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#e8c95a" />
+            <stop offset="40%" stopColor="#c9a84c" />
+            <stop offset="100%" stopColor="#9a7830" />
+          </linearGradient>
+
+          <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f0d870" />
+            <stop offset="100%" stopColor="#9a7830" />
+          </linearGradient>
+
+          <radialGradient id="bodySheen" cx="35%" cy="35%" r="55%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+            <stop offset="60%" stopColor="rgba(255,255,255,0.2)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </radialGradient>
+
+          <clipPath id="bodyClip">
+            <ellipse cx="100" cy="158" rx="82" ry="80" />
+          </clipPath>
+
           <clipPath id="fillClip">
-            <motion.rect 
-              x="0" 
-              y={clipY} 
-              width="200" 
-              height="300" 
+            <motion.rect
+              x="18"
+              y={clipY}
+              width="164"
+              height="140"
             />
           </clipPath>
         </defs>
 
-        {/* Bottle Back Outline (behind oil) */}
-        <path 
-          d="M90,40 L110,40 L110,80 C110,95 160,110 160,130 L160,360 C160,380 140,390 100,390 C60,390 40,380 40,360 L40,130 C40,110 90,95 90,80 Z" 
-          fill="rgba(10, 18, 8, 0.4)" 
-          stroke="hsl(var(--primary) / 0.3)" 
-          strokeWidth="1" 
+        {/* ── RING at the top ── */}
+        <circle
+          cx="100" cy="16" r="11"
+          fill="none"
+          stroke="url(#ringGradient)"
+          strokeWidth="5.5"
         />
 
-        {/* Oil Fill (clipped) */}
-        <path 
-          d="M90,80 C110,95 160,110 160,130 L160,360 C160,380 140,390 100,390 C60,390 40,380 40,360 L40,130 C40,110 90,95 90,80 Z" 
-          fill="url(#oilGradient)" 
-          clipPath="url(#fillClip)" 
-        />
+        {/* ── CAP / LID ── */}
+        {/* Cap neck connector */}
+        <rect x="88" y="24" width="24" height="8" rx="2" fill="url(#capGradient)" />
 
-        {/* Bottle Front Glass (semi-transparent) */}
-        <path 
-          d="M90,40 L110,40 L110,80 C110,95 160,110 160,130 L160,360 C160,380 140,390 100,390 C60,390 40,380 40,360 L40,130 C40,110 90,95 90,80 Z" 
-          fill="url(#glassShine)" 
-          stroke="hsl(var(--primary))" 
-          strokeWidth="2" 
-        />
+        {/* Main ribbed cap body */}
+        <rect x="78" y="30" width="44" height="42" rx="5" fill="url(#capGradient)" />
 
-        {/* Cork */}
-        <path 
-          d="M85,20 L115,20 C118,20 118,40 115,40 L85,40 C82,40 82,20 85,20 Z" 
-          fill="#5e412f" 
-        />
-        <path 
-          d="M85,15 L115,15 L115,20 L85,20 Z" 
-          fill="#3a281d" 
-        />
+        {/* Ribs on cap */}
+        {[36, 42, 48, 54, 60, 66].map((y, i) => (
+          <rect key={i} x="78" y={y} width="44" height="2.5" rx="1"
+            fill="rgba(0,0,0,0.08)" />
+        ))}
 
-        {/* Neck tying / string detail */}
-        <path 
-          d="M90,60 L110,65" 
-          stroke="#c9a84c" 
-          strokeWidth="3" 
-          strokeLinecap="round" 
-        />
-        <path 
-          d="M90,65 L110,70" 
-          stroke="#c9a84c" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-        />
+        {/* Cap bottom rim */}
+        <rect x="75" y="68" width="50" height="8" rx="3" fill="url(#capGradient)" />
 
-        {/* Shine Highlights */}
-        <path 
-          d="M50,150 L50,330" 
-          stroke="rgba(255,255,255,0.2)" 
-          strokeWidth="3" 
-          strokeLinecap="round" 
-        />
-        <path 
-          d="M60,160 L60,320" 
-          stroke="rgba(255,255,255,0.1)" 
-          strokeWidth="1.5" 
-          strokeLinecap="round" 
-        />
-        
-        {/* Label Base */}
-        <rect 
-          x="75" y="200" width="50" height="70" 
-          rx="4" 
-          fill="rgba(10, 18, 8, 0.7)" 
-          stroke="#c9a84c" 
+        {/* ── BOTTLE BODY (white round/globe shape) ── */}
+        {/* Main body ellipse */}
+        <ellipse
+          cx="100" cy="158" rx="82" ry="80"
+          fill="url(#bodyGradient)"
+          stroke="#e0e0e0"
           strokeWidth="1"
         />
-        {/* Label Text/Logo Lines */}
-        <circle cx="100" cy="225" r="8" fill="none" stroke="#c9a84c" strokeWidth="1"/>
-        <path d="M100,220 L100,230 M95,225 L105,225" stroke="#c9a84c" strokeWidth="0.5"/>
-        <line x1="85" y1="245" x2="115" y2="245" stroke="#c9a84c" strokeWidth="1" strokeOpacity="0.5"/>
-        <line x1="90" y1="255" x2="110" y2="255" stroke="#c9a84c" strokeWidth="1" strokeOpacity="0.5"/>
+
+        {/* Oil fill (clipped to body shape) */}
+        <motion.g style={{ opacity: oilOpacity }}>
+          <ellipse
+            cx="100" cy="158" rx="82" ry="80"
+            fill="url(#oilFill)"
+            clipPath="url(#fillClip)"
+          />
+        </motion.g>
+
+        {/* Body sheen highlight */}
+        <ellipse
+          cx="100" cy="158" rx="82" ry="80"
+          fill="url(#bodySheen)"
+        />
+
+        {/* Subtle outline */}
+        <ellipse
+          cx="100" cy="158" rx="82" ry="80"
+          fill="none"
+          stroke="#d8d8d8"
+          strokeWidth="1.5"
+        />
+
+        {/* ── LABEL ── */}
+        <text
+          x="100" y="152"
+          textAnchor="middle"
+          fontSize="22"
+          fontWeight="700"
+          fontFamily="'Playfair Display', Georgia, serif"
+          letterSpacing="3"
+          fill="#c9a84c"
+        >
+          YACHU
+        </text>
+
+        {/* Decorative line under brand name */}
+        <path
+          d="M 68,160 Q 100,168 132,160"
+          fill="none"
+          stroke="#c9a84c"
+          strokeWidth="1"
+          strokeOpacity="0.6"
+        />
+
+        {/* Sub-label */}
+        <text
+          x="100" y="174"
+          textAnchor="middle"
+          fontSize="9.5"
+          fontStyle="italic"
+          fontFamily="'Playfair Display', Georgia, serif"
+          fill="#888"
+          letterSpacing="1"
+        >
+          Hair Oil
+        </text>
+
+        {/* Small shine dot */}
+        <ellipse cx="68" cy="120" rx="9" ry="14" fill="rgba(255,255,255,0.45)" />
+        <ellipse cx="73" cy="116" rx="4" ry="6" fill="rgba(255,255,255,0.6)" />
       </svg>
     </div>
   );
