@@ -7,46 +7,79 @@ import {
   MotionValue,
 } from "framer-motion";
 import { Droplet, Leaf, Sparkles } from "lucide-react";
-import { INGREDIENTS, HERO_POSITIONS, BATCH_RANGES } from "@/lib/ingredients";
+import { INGREDIENTS, HERO_POSITIONS, BATCH_TIMING } from "@/lib/ingredients";
 import { Bottle } from "@/components/Bottle";
 import { IngredientParticle } from "@/components/IngredientParticle";
 import { BatchDot } from "@/components/BatchDot";
 
-// Bottle center within the sticky viewport (fraction of viewport)
-const BOTTLE_X_FRAC = 0.50;
-const BOTTLE_Y_FRAC = 0.50;
+// Bottle center as fraction of the sticky viewport
+const BOTTLE_X = 0.50;
+const BOTTLE_Y = 0.50;
 
-function BatchLabel({ progress }: { progress: MotionValue<number> }) {
-  const [label, setLabel] = useState("Scroll to begin the blend");
+// Per-ingredient timing
+// Each item in a batch gets a small stagger within the batch's window
+function getTimings(batch: 1 | 2 | 3, localIdx: number) {
+  const { appearBase, flyBase, batchSize } = BATCH_TIMING[batch];
+  const APPEAR_SPAN = 0.13;
+  const FLY_SPAN    = 0.08;
 
+  const appearStagger = (localIdx / batchSize) * APPEAR_SPAN * 0.65;
+  const flyStagger    = (localIdx / batchSize) * FLY_SPAN   * 0.60;
+
+  const appearStart = appearBase + appearStagger;
+  const appearEnd   = appearStart + 0.07;
+  const flyStart    = flyBase + flyStagger;
+  const flyEnd      = Math.min(flyStart + FLY_SPAN, flyBase + FLY_SPAN + 0.06);
+
+  return { appearStart, appearEnd, flyStart, flyEnd };
+}
+
+// ─── Status label driven by scroll progress ───
+function StatusLabel({ progress }: { progress: MotionValue<number> }) {
+  const [label, setLabel] = useState("Scroll to reveal the ingredients");
   useEffect(() => {
     const unsub = progress.on("change", (p) => {
-      if (p <= 0.01)      setLabel("Scroll to begin the blend");
-      else if (p < 0.33)  setLabel("Wave 1 of 3 · 10 ingredients blending…");
-      else if (p < 0.66)  setLabel("Wave 2 of 3 · 10 more ingredients…");
-      else if (p < 0.99)  setLabel("Wave 3 of 3 · 13 final ingredients…");
-      else                setLabel("All 33 ingredients blended. ✨");
+      if      (p < 0.02) setLabel("Scroll to reveal the ingredients");
+      else if (p < 0.20) setLabel("Wave 1 · 10 ingredients revealing…");
+      else if (p < 0.42) setLabel("Wave 2 · 10 more ingredients…");
+      else if (p < 0.62) setLabel("Wave 3 · 13 final ingredients…");
+      else if (p < 0.64) setLabel("All 33 visible · Beginning the blend…");
+      else if (p < 0.76) setLabel("Wave 1 blending into the bottle…");
+      else if (p < 0.88) setLabel("Wave 2 blending…");
+      else if (p < 0.99) setLabel("Wave 3 blending…");
+      else               setLabel("All 33 ingredients blended ✨");
     });
     return () => unsub();
   }, [progress]);
 
   return (
-    <p className="text-xs tracking-widest uppercase text-gray-400 font-medium">
+    <p className="text-[10px] tracking-widest uppercase text-gray-400 font-medium transition-all">
       {label}
     </p>
   );
 }
 
-function IngredientCount({ progress }: { progress: MotionValue<number> }) {
-  const count = useTransform(progress, [0, 1], [0, 33]);
-  const [display, setDisplay] = useState(0);
+// ─── Animated visible-ingredient counter ───
+function VisibleCount({ progress }: { progress: MotionValue<number> }) {
+  const [count, setCount] = useState(0);
   useEffect(() => {
-    const unsub = count.on("change", (v) => setDisplay(Math.round(v)));
+    const unsub = progress.on("change", (p) => {
+      // Count appears in steps matching appear phases, then resets as they fly
+      if      (p < BATCH_TIMING[1].appearBase + 0.03) setCount(0);
+      else if (p < BATCH_TIMING[2].appearBase)         setCount(10);
+      else if (p < BATCH_TIMING[3].appearBase)         setCount(20);
+      else if (p < BATCH_TIMING[1].flyBase)            setCount(33);
+      else if (p < BATCH_TIMING[2].flyBase)            setCount(23);
+      else if (p < BATCH_TIMING[3].flyBase)            setCount(13);
+      else if (p < 0.99)                               setCount(Math.max(0, 33 - Math.round((p - 0.88) / 0.12 * 13)));
+      else                                             setCount(0);
+    });
     return () => unsub();
-  }, [count]);
+  }, [progress]);
+
   return (
     <span className="tabular-nums font-serif text-primary text-2xl font-semibold">
-      {display}
+      {count}
     </span>
   );
 }
@@ -57,10 +90,7 @@ export default function Home() {
   const [vpH, setVpH] = useState(typeof window !== "undefined" ? window.innerHeight : 800);
 
   useEffect(() => {
-    const onResize = () => {
-      setVpW(window.innerWidth);
-      setVpH(window.innerHeight);
-    };
+    const onResize = () => { setVpW(window.innerWidth); setVpH(window.innerHeight); };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -69,67 +99,59 @@ export default function Home() {
     target: containerRef,
     offset: ["start start", "end end"],
   });
-
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 55,
-    damping: 18,
+    stiffness: 60,
+    damping: 20,
     restDelta: 0.001,
   });
 
-  // Background glow that grows as bottle fills
-  const glowOpacity = useTransform(smoothProgress, [0, 0.5, 1], [0, 0.12, 0.22]);
-  const glowScale   = useTransform(smoothProgress, [0, 1], [0.5, 1.6]);
+  // Ambient gold glow grows during fly phase
+  const glowOpacity = useTransform(smoothProgress, [0.60, 0.80, 1.0], [0, 0.18, 0.28]);
+  const glowScale   = useTransform(smoothProgress, [0.60, 1.0], [0.6, 1.8]);
 
-  // Title fades gently as scroll starts
-  const titleOpacity = useTransform(smoothProgress, [0, 0.12], [1, 0]);
-  const titleY       = useTransform(smoothProgress, [0, 0.12], [0, -30]);
+  // Title fades out as first wave appears
+  const titleOpacity = useTransform(smoothProgress, [0, 0.08], [1, 0]);
+  const titleY       = useTransform(smoothProgress, [0, 0.08], [0, -24]);
 
-  // Compute per-ingredient fly timings & pixel offsets
+  // Build per-ingredient data
   const ingredientData = INGREDIENTS.map((ingredient, i) => {
-    const batchRange = BATCH_RANGES[ingredient.batch];
-    const batchSize  = ingredient.batch === 3 ? 13 : 10;
-    const localIdx   = ingredient.batch === 1 ? i
-                     : ingredient.batch === 2 ? i - 10
-                     :                          i - 20;
-    const batchSpan  = batchRange.end - batchRange.start;
-    const stagger    = (localIdx / batchSize) * batchSpan * 0.30;
-    const flyDuration = batchSpan * 0.52;
+    const localIdx = ingredient.batch === 1 ? i
+                   : ingredient.batch === 2 ? i - 10
+                   :                          i - 20;
+    const timings  = getTimings(ingredient.batch, localIdx);
+    const pos      = HERO_POSITIONS[i];
 
-    const flyStart = batchRange.start + stagger;
-    const flyEnd   = Math.min(flyStart + flyDuration, batchRange.end + 0.04);
+    const targetDx = (BOTTLE_X - pos.xFrac) * vpW;
+    const targetDy = (BOTTLE_Y - pos.yFrac) * vpH;
 
-    const pos = HERO_POSITIONS[i];
-    const targetDx = (BOTTLE_X_FRAC - pos.xFrac) * vpW;
-    const targetDy = (BOTTLE_Y_FRAC - pos.yFrac) * vpH;
-
-    return { ingredient, pos, flyStart, flyEnd, targetDx, targetDy };
+    return { ingredient, pos, ...timings, targetDx, targetDy };
   });
 
   return (
     <div className="bg-white text-foreground">
 
-      {/* ── TALL STICKY SCROLL CONTAINER ── */}
-      <section ref={containerRef} className="relative" style={{ height: "5500px" }}>
-        <div className="sticky top-0 h-screen w-full overflow-hidden bg-gradient-to-b from-white via-amber-50/20 to-white">
+      {/* ── STICKY SCROLL SECTION ── */}
+      <section ref={containerRef} className="relative" style={{ height: "6200px" }}>
+        <div className="sticky top-0 h-screen w-full overflow-hidden bg-gradient-to-b from-white via-amber-50/15 to-white">
 
-          {/* Gold ambient glow behind bottle */}
+          {/* Gold ambient glow behind bottle (grows when fly phase starts) */}
           <motion.div
             className="absolute pointer-events-none rounded-full"
             style={{
-              left: `${BOTTLE_X_FRAC * 100}%`,
-              top:  `${BOTTLE_Y_FRAC * 100}%`,
+              left: "50%",
+              top: "50%",
               translateX: "-50%",
               translateY: "-50%",
-              width: "420px",
-              height: "420px",
-              background: "radial-gradient(circle, rgba(201,168,76,1) 0%, transparent 70%)",
+              width: "460px",
+              height: "460px",
+              background: "radial-gradient(circle, rgba(201,168,76,0.9) 0%, transparent 68%)",
               opacity: glowOpacity,
               scale: glowScale,
-              filter: "blur(40px)",
+              filter: "blur(50px)",
             }}
           />
 
-          {/* ── TITLE (fades on scroll) ── */}
+          {/* ── TITLE (visible at start, fades when scroll begins) ── */}
           <motion.div
             className="absolute top-0 left-0 right-0 z-30 flex flex-col items-center pt-10 pointer-events-none"
             style={{ opacity: titleOpacity, y: titleY }}
@@ -138,37 +160,36 @@ export default function Home() {
               Botanical Alchemy
             </p>
             <h1 className="text-5xl md:text-7xl font-serif text-gray-900 text-center leading-none mb-3">
-              Essence of <span className="text-primary italic">Nature</span>
+              Essence of{" "}
+              <em className="text-primary not-italic font-serif italic">Nature</em>
             </h1>
             <p className="text-sm text-gray-400 font-light tracking-wide">
               33 hand-picked botanicals · one perfect blend
             </p>
-            <div className="mt-6 flex items-center gap-2 text-gray-300">
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                className="flex flex-col items-center gap-1"
-              >
-                <span className="text-[9px] tracking-[0.3em] uppercase">Scroll</span>
-                <div className="w-px h-8 bg-gradient-to-b from-gray-300 to-transparent" />
-              </motion.div>
-            </div>
+            <motion.div
+              className="mt-7 flex flex-col items-center gap-1 text-gray-300"
+              animate={{ y: [0, 9, 0] }}
+              transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <span className="text-[8px] tracking-[0.3em] uppercase">Scroll</span>
+              <div className="w-px h-7 bg-gradient-to-b from-gray-300 to-transparent" />
+            </motion.div>
           </motion.div>
 
-          {/* ── BOTTLE ── centered in viewport */}
+          {/* ── BOTTLE ── pinned to center */}
           <div
             className="absolute z-10"
             style={{
-              left: `${BOTTLE_X_FRAC * 100}%`,
-              top:  `${BOTTLE_Y_FRAC * 100}%`,
+              left: `${BOTTLE_X * 100}%`,
+              top:  `${BOTTLE_Y * 100}%`,
               transform: "translate(-50%, -50%)",
             }}
           >
             <Bottle progress={smoothProgress} />
           </div>
 
-          {/* ── 33 INGREDIENT PARTICLES scattered across full viewport ── */}
-          {ingredientData.map(({ ingredient, pos, flyStart, flyEnd, targetDx, targetDy }) => (
+          {/* ── 33 INGREDIENT PARTICLES (each starts invisible, appears on scroll) ── */}
+          {ingredientData.map(({ ingredient, pos, appearStart, appearEnd, flyStart, flyEnd, targetDx, targetDy }) => (
             <IngredientParticle
               key={ingredient.id}
               ingredient={ingredient}
@@ -179,29 +200,31 @@ export default function Home() {
               targetDx={targetDx}
               targetDy={targetDy}
               delay={pos.delay}
+              appearStart={appearStart}
+              appearEnd={appearEnd}
               flyStart={flyStart}
               flyEnd={flyEnd}
             />
           ))}
 
           {/* ── BOTTOM STATUS BAR ── */}
-          <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-8 py-6 border-t border-gray-100/80 bg-white/80 backdrop-blur-sm">
-            {/* Left: counter */}
-            <div className="flex items-center gap-2">
-              <IngredientCount progress={smoothProgress} />
-              <span className="text-gray-400 text-sm">/ 33 blended</span>
+          <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-8 py-5 border-t border-gray-100/90 bg-white/85 backdrop-blur-sm">
+            {/* Left: visible ingredient counter */}
+            <div className="flex items-center gap-1.5">
+              <VisibleCount progress={smoothProgress} />
+              <span className="text-gray-400 text-sm">/ 33 ingredients</span>
             </div>
 
-            {/* Center: batch label */}
+            {/* Center: phase label */}
             <div className="absolute left-1/2 -translate-x-1/2">
-              <BatchLabel progress={smoothProgress} />
+              <StatusLabel progress={smoothProgress} />
             </div>
 
-            {/* Right: progress dots */}
+            {/* Right: batch dots (light up as each batch appears) */}
             <div className="flex items-center gap-3">
-              <BatchDot batchStart={0}    label="10"  progress={smoothProgress} />
-              <BatchDot batchStart={0.33} label="+10" progress={smoothProgress} />
-              <BatchDot batchStart={0.66} label="+13" progress={smoothProgress} />
+              <BatchDot batchStart={BATCH_TIMING[1].appearBase} label="10"  progress={smoothProgress} />
+              <BatchDot batchStart={BATCH_TIMING[2].appearBase} label="+10" progress={smoothProgress} />
+              <BatchDot batchStart={BATCH_TIMING[3].appearBase} label="+13" progress={smoothProgress} />
             </div>
           </div>
         </div>
@@ -211,9 +234,9 @@ export default function Home() {
       <section className="py-20 px-6 bg-white border-t border-gray-100">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
           {[
-            { value: "33", label: "Potent Actives" },
+            { value: "33",   label: "Potent Actives" },
             { value: "100%", label: "Pure Botanical" },
-            { value: "0", label: "Synthetics" },
+            { value: "0",    label: "Synthetics" },
             { value: "Cold", label: "Pressed" },
           ].map((stat) => (
             <div key={stat.label} className="space-y-2">
@@ -235,11 +258,14 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { icon: Leaf,     title: "Uncompromising Purity",  desc: "No fillers, no water, no artificial fragrances. Pure, unadulterated earth magic." },
+              { icon: Leaf,     title: "Uncompromising Purity",  desc: "No fillers, no water, no artificial fragrances. Pure botanical earth magic." },
               { icon: Sparkles, title: "Ancient Wisdom",          desc: "Formulated using techniques passed down through generations of apothecaries." },
-              { icon: Droplet,  title: "Micro-Batch Crafting",   desc: "Blended by hand in small batches for absolute freshness and molecular integrity." },
+              { icon: Droplet,  title: "Micro-Batch Crafting",   desc: "Blended by hand in small batches for absolute freshness and integrity." },
             ].map((f) => (
-              <div key={f.title} className="bg-white border border-gray-100 rounded-2xl p-7 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group">
+              <div
+                key={f.title}
+                className="bg-white border border-gray-100 rounded-2xl p-7 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group"
+              >
                 <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center mb-4 text-primary group-hover:bg-primary/15 transition-colors">
                   <f.icon className="w-4 h-4" />
                 </div>

@@ -10,6 +10,10 @@ interface IngredientParticleProps {
   targetDx: number;
   targetDy: number;
   delay: number;
+  // When this ingredient fades IN at its random position
+  appearStart: number;
+  appearEnd: number;
+  // When this ingredient flies into the bottle
   flyStart: number;
   flyEnd: number;
 }
@@ -22,18 +26,27 @@ export function IngredientParticle({
   targetDx,
   targetDy,
   delay,
+  appearStart,
+  appearEnd,
   flyStart,
   flyEnd,
 }: IngredientParticleProps) {
-  const journey = useTransform(progress, [flyStart, flyEnd], [0, 1], { clamp: true });
+  // Opacity: invisible → fade in → stay → fade out as it enters bottle
+  const opacity = useTransform(
+    progress,
+    [appearStart, appearEnd, flyStart, flyEnd],
+    [0, 1, 1, 0],
+    { clamp: true }
+  );
 
-  const x       = useTransform(journey, [0, 1], [0, targetDx]);
-  const y       = useTransform(journey, [0, 1], [0, targetDy]);
-  const scale   = useTransform(journey, [0, 0.72, 1], [1, 0.85, 0.1]);
-  const opacity = useTransform(journey, [0, 0.80, 1], [1, 1, 0]);
+  // Only move during fly phase (0 = resting at scatter position, 1 = bottle center)
+  const flyJourney = useTransform(progress, [flyStart, flyEnd], [0, 1], { clamp: true });
+  const x     = useTransform(flyJourney, [0, 1], [0, targetDx]);
+  const y     = useTransform(flyJourney, [0, 1], [0, targetDy]);
+  const scale = useTransform(flyJourney, [0, 0.65, 1], [1, 0.82, 0.08]);
 
   return (
-    /* Outer div: absolute positioned to xFrac/yFrac, centered on that point */
+    /* Outer div: pinned to its random scatter position */
     <div
       className="absolute pointer-events-none z-20"
       style={{
@@ -42,20 +55,25 @@ export function IngredientParticle({
         transform: "translate(-50%, -50%)",
       }}
     >
-      {/* Inner motion div: handles all animation transforms */}
+      {/* Motion div: handles fly-toward-bottle + fade */}
       <motion.div style={{ x, y, scale, opacity }}>
-        {/* Float animation while waiting to fly */}
+        {/* Gentle idle float */}
         <motion.div
-          animate={{ y: [0, -7, 0] }}
-          transition={{ duration: 2.6 + delay * 0.4, repeat: Infinity, ease: "easeInOut", delay }}
+          animate={{ y: [0, -8, 0] }}
+          transition={{
+            duration: 2.4 + (delay % 1.2),
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay,
+          }}
           className="flex flex-col items-center gap-1.5"
         >
           <div
             className="w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg md:text-xl border shadow-sm"
             style={{
-              backgroundColor: ingredient.color + "14",
+              backgroundColor: ingredient.color + "13",
               borderColor:     ingredient.color + "40",
-              boxShadow:       `0 3px 12px ${ingredient.color}20`,
+              boxShadow:       `0 3px 14px ${ingredient.color}20`,
             }}
           >
             {ingredient.icon}

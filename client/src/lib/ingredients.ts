@@ -44,23 +44,47 @@ export const INGREDIENTS: Ingredient[] = [
   { id: 33, name: "Sandalwood",   icon: "🪵", color: "#9a6840", batch: 3 },
 ];
 
-// Spread positions across the full viewport using deterministic pseudo-random
-// vw/vh fractions (0–1), converted to pixel offsets at render time
-export const HERO_POSITIONS: { xFrac: number; yFrac: number; delay: number }[] =
-  INGREDIENTS.map((_, i) => {
-    const seed1 = (i * 137 + 17) % 251;
-    const seed2 = (i * 271 + 31) % 349;
-    const seed3 = (i * 89  + 7)  % 97;
-    return {
-      // spread across 5–95% of viewport width/height
-      xFrac: 0.05 + (seed1 / 251) * 0.90,
-      yFrac: 0.05 + (seed2 / 349) * 0.90,
-      delay:  (seed3 / 97) * 2.0,
-    };
-  });
+// Angular distribution: 33 evenly-spread angles around the bottle center
+// with seeded jitter for a natural scattered look — guarantees no lines.
+const TWO_PI = Math.PI * 2;
+const ANGLE_STEP = TWO_PI / INGREDIENTS.length;
 
-export const BATCH_RANGES = {
-  1: { start: 0,    end: 0.33 },
-  2: { start: 0.33, end: 0.66 },
-  3: { start: 0.66, end: 1.00 },
+export const HERO_POSITIONS = INGREDIENTS.map((_, i) => {
+  // Stable seeded pseudo-randoms for this index
+  const seedAngle = (i * 89 + 31)  % 97;  // 0-96
+  const seedDist  = (i * 137 + 53) % 251; // 0-250
+  const seedDelay = (i * 71  + 17) % 97;  // 0-96
+
+  // Angle: base slice + random jitter (±35% of a slice)
+  const jitter = ((seedAngle / 97) - 0.5) * ANGLE_STEP * 0.70;
+  const angle  = i * ANGLE_STEP + jitter;
+
+  // Distance from center: 0.23–0.46 of viewport half-width
+  const dist = 0.23 + (seedDist / 251) * 0.23;
+
+  // X has wider spread (landscape viewports)
+  const xFrac = 0.5 + dist * Math.cos(angle) * 1.55;
+  const yFrac = 0.5 + dist * Math.sin(angle);
+
+  return {
+    xFrac:  Math.max(0.06, Math.min(0.93, xFrac)),
+    yFrac:  Math.max(0.08, Math.min(0.88, yFrac)),
+    delay:  (seedDelay / 97) * 2.0,
+  };
+});
+
+// Scroll-progress windows for each phase
+// ─── APPEAR PHASE ────────────────────────────────────────────
+//   Batch 1:  0.00 – 0.14   (items stagger within range)
+//   Batch 2:  0.20 – 0.36
+//   Batch 3:  0.42 – 0.58
+// ─── FLY PHASE ───────────────────────────────────────────────
+//   Batch 1:  0.64 – 0.76
+//   Batch 2:  0.76 – 0.88
+//   Batch 3:  0.88 – 1.00
+
+export const BATCH_TIMING = {
+  1: { appearBase: 0.00, flyBase: 0.64, batchSize: 10 },
+  2: { appearBase: 0.20, flyBase: 0.76, batchSize: 10 },
+  3: { appearBase: 0.42, flyBase: 0.88, batchSize: 13 },
 } as const;
