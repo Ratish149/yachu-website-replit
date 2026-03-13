@@ -44,48 +44,56 @@ export const INGREDIENTS: Ingredient[] = [
   { id: 33, name: "Sandalwood",    icon: "🪵", color: "#9a6840", batch: 3 },
 ];
 
-// ─── Positions: golden-angle spiral around bottle center ───────────────────
-// Guarantees even angular spread with seeded jitter — never forms lines.
-const TWO_PI   = Math.PI * 2;
-const N        = INGREDIENTS.length; // 33
-const ANGLE_STEP = TWO_PI / N;
+// ─── Positions: each batch independently scatters across the full screen ───
+// Each batch uses its own N=batchSize spiral so every batch fills the
+// entire viewport rather than sharing a slice of a 33-item spiral.
+const TWO_PI = Math.PI * 2;
 
-export const HERO_POSITIONS = INGREDIENTS.map((_, i) => {
-  const seedAngle = (i * 89 + 31)  % 97;
-  const seedDist  = (i * 137 + 53) % 251;
-  const seedDelay = (i * 71  + 17) % 97;
+function generateBatchPositions(count: number, batchSeed: number) {
+  const angleStep = TWO_PI / count;
+  return Array.from({ length: count }, (_, i) => {
+    const seedAngle = (i * 89 + batchSeed * 43 + 31)  % 97;
+    const seedDist  = (i * 137 + batchSeed * 67 + 53) % 251;
+    const seedDelay = (i * 71  + batchSeed * 29 + 17) % 97;
 
-  // Small jitter: ±35% of a slice so items don't form a perfect ring
-  const jitter = ((seedAngle / 97) - 0.5) * ANGLE_STEP * 0.70;
-  const angle  = i * ANGLE_STEP + jitter;
+    // ±60% jitter so items feel truly scattered, not ring-like
+    const jitter = ((seedAngle / 97) - 0.5) * angleStep * 1.2;
+    const angle  = i * angleStep + jitter;
 
-  // Distance 0.22–0.46 of viewport half-width (more spread toward edges)
-  const dist = 0.22 + (seedDist / 251) * 0.24;
+    // Distance 0.20–0.44 of viewport half-width
+    const dist = 0.20 + (seedDist / 251) * 0.24;
 
-  // X stretched 1.6× for landscape viewports
-  const xFrac = 0.5 + dist * Math.cos(angle) * 1.6;
-  const yFrac = 0.5 + dist * Math.sin(angle);
+    // X stretched 1.6× for landscape viewports
+    const xFrac = 0.5 + dist * Math.cos(angle) * 1.6;
+    const yFrac = 0.5 + dist * Math.sin(angle);
 
-  return {
-    xFrac:  Math.max(0.05, Math.min(0.94, xFrac)),
-    yFrac:  Math.max(0.07, Math.min(0.88, yFrac)),
-    delay:  (seedDelay / 97) * 2.4,   // CSS animation-delay: 0–2.4s
-  };
-});
+    return {
+      xFrac:  Math.max(0.05, Math.min(0.94, xFrac)),
+      yFrac:  Math.max(0.07, Math.min(0.88, yFrac)),
+      delay:  (seedDelay / 97) * 2.4,
+    };
+  });
+}
+
+const batch1Pos = generateBatchPositions(10, 1);
+const batch2Pos = generateBatchPositions(10, 2);
+const batch3Pos = generateBatchPositions(13, 3);
+
+export const HERO_POSITIONS = [...batch1Pos, ...batch2Pos, ...batch3Pos];
 
 // ─── Scroll-progress windows (overlapping batches) ─────────────────────────
 //
 //  [0.00–0.12]  Batch 1 APPEARS
 //  [0.14–0.40]  Batch 1 FLIES → bottle starts filling
-//  [0.22–0.40]  Batch 2 APPEARS  ← overlaps batch 1 mid-flight
+//  [0.27–0.40]  Batch 2 APPEARS  ← exactly when half of batch 1 is flying
 //  [0.42–0.66]  Batch 2 FLIES
-//  [0.50–0.68]  Batch 3 APPEARS  ← overlaps batch 2 mid-flight
+//  [0.54–0.68]  Batch 3 APPEARS  ← exactly when half of batch 2 is flying
 //  [0.70–0.96]  Batch 3 FLIES → bottle completely full
 
 export const BATCH_TIMING = {
   1: { appearBase: 0.00, flyBase: 0.14, batchSize: 10 },
-  2: { appearBase: 0.22, flyBase: 0.42, batchSize: 10 },
-  3: { appearBase: 0.50, flyBase: 0.70, batchSize: 13 },
+  2: { appearBase: 0.27, flyBase: 0.42, batchSize: 10 },
+  3: { appearBase: 0.54, flyBase: 0.70, batchSize: 13 },
 } as const;
 
 // Bottle fill: starts when batch 1 starts flying, ends when batch 3 finishes

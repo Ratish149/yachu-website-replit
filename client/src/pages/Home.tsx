@@ -42,11 +42,11 @@ function StatusLabel({ progress }: { progress: MotionValue<number> }) {
   useEffect(() => {
     return progress.on("change", (p) => {
       if      (p < 0.02)  setLabel("Scroll to reveal the ingredients");
-      else if (p < 0.22)  setLabel("Wave 1 · 10 botanicals awakening…");
-      else if (p < 0.26)  setLabel("Wave 1 blending · Wave 2 appearing…");
-      else if (p < 0.42)  setLabel("Wave 2 · 10 more botanicals revealed…");
-      else if (p < 0.52)  setLabel("Wave 2 blending · Wave 3 appearing…");
-      else if (p < 0.68)  setLabel("Wave 3 · 13 final botanicals revealed…");
+      else if (p < 0.27)  setLabel("Wave 1 · 10 botanicals awakening…");
+      else if (p < 0.32)  setLabel("Wave 1 blending · Wave 2 appearing…");
+      else if (p < 0.54)  setLabel("Wave 2 · 10 more botanicals revealed…");
+      else if (p < 0.58)  setLabel("Wave 2 blending · Wave 3 appearing…");
+      else if (p < 0.70)  setLabel("Wave 3 · 13 final botanicals revealed…");
       else if (p < 0.80)  setLabel("All 33 blending into the bottle…");
       else if (p < 0.98)  setLabel("Ancient formula taking shape…");
       else                setLabel("All 33 botanicals blended ✨");
