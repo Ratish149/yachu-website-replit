@@ -45,8 +45,6 @@ export const INGREDIENTS: Ingredient[] = [
 ];
 
 // ─── Positions: each batch independently scatters across the full screen ───
-// Each batch uses its own N=batchSize spiral so every batch fills the
-// entire viewport rather than sharing a slice of a 33-item spiral.
 const TWO_PI = Math.PI * 2;
 
 function generateBatchPositions(count: number, batchSeed: number) {
@@ -56,14 +54,10 @@ function generateBatchPositions(count: number, batchSeed: number) {
     const seedDist  = (i * 137 + batchSeed * 67 + 53) % 251;
     const seedDelay = (i * 71  + batchSeed * 29 + 17) % 97;
 
-    // ±60% jitter so items feel truly scattered, not ring-like
     const jitter = ((seedAngle / 97) - 0.5) * angleStep * 1.2;
     const angle  = i * angleStep + jitter;
+    const dist   = 0.20 + (seedDist / 251) * 0.24;
 
-    // Distance 0.20–0.44 of viewport half-width
-    const dist = 0.20 + (seedDist / 251) * 0.24;
-
-    // X stretched 1.6× for landscape viewports
     const xFrac = 0.5 + dist * Math.cos(angle) * 1.6;
     const yFrac = 0.5 + dist * Math.sin(angle);
 
@@ -81,21 +75,30 @@ const batch3Pos = generateBatchPositions(13, 3);
 
 export const HERO_POSITIONS = [...batch1Pos, ...batch2Pos, ...batch3Pos];
 
-// ─── Scroll-progress windows (overlapping batches) ─────────────────────────
+// ─── Scroll-progress windows ────────────────────────────────────────────────
 //
-//  [0.00–0.12]  Batch 1 APPEARS
-//  [0.14–0.40]  Batch 1 FLIES → bottle starts filling
-//  [0.27–0.40]  Batch 2 APPEARS  ← exactly when half of batch 1 is flying
-//  [0.42–0.66]  Batch 2 FLIES
-//  [0.54–0.68]  Batch 3 APPEARS  ← exactly when half of batch 2 is flying
-//  [0.70–0.96]  Batch 3 FLIES → bottle completely full
+//  [0.00–0.07]  Cap lifts off the bottle
+//  [0.08–0.20]  Batch 1 APPEARS
+//  [0.22–0.44]  Batch 1 FLIES → oil starts rising
+//  [0.36–0.48]  Batch 2 APPEARS  ← halfway through batch 1 fly
+//  [0.50–0.66]  Batch 2 FLIES
+//  [0.58–0.66]  Batch 3 APPEARS  ← halfway through batch 2 fly
+//  [0.66–0.86]  Batch 3 FLIES → oil fully risen
+//  [0.87–0.96]  Cap drops back and locks onto bottle
+//  [0.96–1.00]  Sealed bottle dwell before next section
 
 export const BATCH_TIMING = {
-  1: { appearBase: 0.00, flyBase: 0.14, batchSize: 10 },
-  2: { appearBase: 0.27, flyBase: 0.42, batchSize: 10 },
-  3: { appearBase: 0.54, flyBase: 0.70, batchSize: 13 },
+  1: { appearBase: 0.08, flyBase: 0.22, batchSize: 10 },
+  2: { appearBase: 0.36, flyBase: 0.50, batchSize: 10 },
+  3: { appearBase: 0.58, flyBase: 0.66, batchSize: 13 },
 } as const;
 
 // Bottle fill: starts when batch 1 starts flying, ends when batch 3 finishes
-export const BOTTLE_FILL_START = 0.14;
-export const BOTTLE_FILL_END   = 0.96;
+export const BOTTLE_FILL_START = 0.22;
+export const BOTTLE_FILL_END   = 0.87;
+
+// Cap animation progress points (used by Bottle component)
+export const CAP_LIFT_START   = 0.00;
+export const CAP_LIFT_END     = 0.07;
+export const CAP_RETURN_START = 0.87;
+export const CAP_RETURN_END   = 0.96;

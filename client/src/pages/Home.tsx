@@ -41,14 +41,14 @@ function StatusLabel({ progress }: { progress: MotionValue<number> }) {
   const [label, setLabel] = useState("Scroll to reveal the ingredients");
   useEffect(() => {
     return progress.on("change", (p) => {
-      if      (p < 0.02)  setLabel("Scroll to reveal the ingredients");
-      else if (p < 0.27)  setLabel("Wave 1 · 10 botanicals awakening…");
-      else if (p < 0.32)  setLabel("Wave 1 blending · Wave 2 appearing…");
-      else if (p < 0.54)  setLabel("Wave 2 · 10 more botanicals revealed…");
-      else if (p < 0.58)  setLabel("Wave 2 blending · Wave 3 appearing…");
-      else if (p < 0.70)  setLabel("Wave 3 · 13 final botanicals revealed…");
-      else if (p < 0.80)  setLabel("All 33 blending into the bottle…");
-      else if (p < 0.98)  setLabel("Ancient formula taking shape…");
+      if      (p < 0.04)  setLabel("Scroll to begin the ritual…");
+      else if (p < 0.08)  setLabel("Opening the bottle…");
+      else if (p < 0.36)  setLabel("Wave 1 · 10 botanicals awakening…");
+      else if (p < 0.42)  setLabel("Wave 1 blending · Wave 2 appearing…");
+      else if (p < 0.58)  setLabel("Wave 2 · 10 more botanicals revealed…");
+      else if (p < 0.64)  setLabel("Wave 2 blending · Wave 3 appearing…");
+      else if (p < 0.86)  setLabel("Wave 3 · 13 final botanicals revealed…");
+      else if (p < 0.96)  setLabel("Sealing the ancient formula…");
       else                setLabel("All 33 botanicals blended ✨");
     });
   }, [progress]);
@@ -71,7 +71,7 @@ function BlendedCount({ progress }: { progress: MotionValue<number> }) {
       if      (p < b1Fly) setCount(0);
       else if (p < b2Fly) setCount(Math.round(((p - b1Fly) / (b2Fly - b1Fly)) * 10));
       else if (p < b3Fly) setCount(10 + Math.round(((p - b2Fly) / (b3Fly - b2Fly)) * 10));
-      else if (p < 0.97)  setCount(20 + Math.round(((p - b3Fly) / (0.96  - b3Fly)) * 13));
+      else if (p < 0.87)  setCount(20 + Math.round(((p - b3Fly) / (0.87  - b3Fly)) * 13));
       else                setCount(33);
     });
   }, [progress]);
@@ -114,9 +114,9 @@ export default function Home() {
   const glowOpacity = useTransform(progress, [BOTTLE_FILL_START, 0.70, BOTTLE_FILL_END], [0, 0.20, 0.32]);
   const glowScale   = useTransform(progress, [BOTTLE_FILL_START, BOTTLE_FILL_END], [0.5, 1.9]);
 
-  // Hero title fades out when scrolling starts
-  const titleOpacity = useTransform(progress, [0, 0.07], [1, 0]);
-  const titleY       = useTransform(progress, [0, 0.07], [0, -20]);
+  // Hero title fades out as cap lifts (first 8% of scroll)
+  const titleOpacity = useTransform(progress, [0, 0.08], [1, 0]);
+  const titleY       = useTransform(progress, [0, 0.08], [0, -20]);
 
   // Per-ingredient render data
   const particles = INGREDIENTS.map((ingredient, i) => {
@@ -135,9 +135,9 @@ export default function Home() {
     <div className="bg-white text-foreground">
 
       {/* ══════════════════════════════════════════════════════════════════
-          STICKY SCROLL SECTION  (6 000 px gives enough scroll travel)
+          STICKY SCROLL SECTION  (8 000 px — extra dwell for sealed bottle)
       ══════════════════════════════════════════════════════════════════ */}
-      <section ref={containerRef} className="relative" style={{ height: "6000px" }}>
+      <section ref={containerRef} className="relative" style={{ height: "8000px" }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden bg-gradient-to-b from-white via-amber-50/10 to-white">
 
           {/* Ambient gold glow (appears during fly phase) */}
